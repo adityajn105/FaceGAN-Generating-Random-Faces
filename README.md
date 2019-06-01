@@ -5,11 +5,11 @@ Generate Random Faces which do not exists. I trained a Deep Convolution GAN (DCG
 
 Training Progress           | Web App view            
 :-------------------------:|:-------------------------:
-![](screenshots/progress_animation.png)  |  ![](screenshots/app_view.png) 
+![](screenshots/progress_animation.gif)  |  ![](screenshots/app_view.png) 
 
 
 ## Getting Started
-Here I will explain how to train the FaceGAN, also how to setup the app running in your own environment. Also I will try to explain basics of Convolution Neural Network.
+Here I will explain how to train the FaceGAN, also how to setup the app running in your own environment. Also I will try to explain basics of Deep Convolutional Generative Adversarial Network.
 
 ### Prerequisites
 You will need Python 3.X.X with some packages which you can install direclty using requirements.txt.
