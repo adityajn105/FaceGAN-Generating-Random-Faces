@@ -23,7 +23,7 @@ Run the train_gan.py file. Using the following flags:
 * -w, --weights - saved weights directory
 * -p, --photo_dir - directory containing face images
 * -b, --batch_size - batch size
-* -e, --epochs - number of epocs to run
+* -e, --epochs - number of epochs to run
 * -i, --inp_dim - dimension of noise for generator
 > python3 train_gan.py --weights ./saved_weights -p ./photos -b 32 -e 10000 -i 100 
 

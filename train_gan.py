@@ -109,62 +109,62 @@ def getFakeMiniBatch(batch_size=32, INP_DIM=100):
     yield generator.predict(x),x
 
 if __name__ == '__main__':
-
-	parser = argparse.ArgumentParser()
+  
+  parser = argparse.ArgumentParser()
   parser.add_argument("-w", "--weights", default="saved_weights",help="Model weights directory")
-	parser.add_argument("-p", "--photos_dir", default="allPhotos",help="Faces directory")
-	parser.add_argument("-b", "--batch_size", type=int, default=32, help="Size of each batch")
-	parser.add_argument("-i", "--inp_dim", type=int, default=100, help="Size of Input Noise")
-	parser.add_argument("-e", "--epochs", type=int, default=10000, help="Number of Epochs to train")
+  parser.add_argument("-p", "--photos_dir", default="allPhotos",help="Faces directory")
+  parser.add_argument("-b", "--batch_size", type=int, default=32, help="Size of each batch")
+  parser.add_argument("-i", "--inp_dim", type=int, default=100, help="Size of Input Noise")
+  parser.add_argument("-e", "--epochs", type=int, default=10000, help="Number of Epochs to train")
 
-	args = parser.parse_args()
+  args = parser.parse_args()
 
-	BATCH_SIZE = args.batch_size
-	INP_DIM = args.inp_dim
-	EPOCHS = args.epochs
+  BATCH_SIZE = args.batch_size
+  INP_DIM = args.inp_dim
+  EPOCHS = args.epochs
 
-	optimizer = Adam(0.0002,0.5)
+  optimizer = Adam(0.0002,0.5)
+  
+  descriminator = Descriminator(width=IMG_WIDTH, height=IMG_HEIGHT, channels=CHANNELS)
+  descriminator.compile( loss="binary_crossentropy", optimizer=optimizer, metrics=['accuracy'] )
 
-	descriminator = Descriminator(width=IMG_WIDTH, height=IMG_HEIGHT, channels=CHANNELS)
-	descriminator.compile( loss="binary_crossentropy", optimizer=optimizer, metrics=['accuracy'] )
+  generator = Generator( INP_DIM=INP_DIM )
 
-	generator = Generator( INP_DIM=INP_DIM )
-	
-	gan = GAN(descriminator,generator,INP_DIM=INP_DIM)
-	gan.compile( loss="binary_crossentropy", optimizer=optimizer )
+  gan = GAN(descriminator,generator,INP_DIM=INP_DIM)
+  gan.compile( loss="binary_crossentropy", optimizer=optimizer )
 
-	if os.path.exists(args.weights):
-	  generator.load_weights(args.weights+'/generator_weights.h5')
-	  descriminator.load_weights(args.weights+'/descriminator_weights.h5')
-	  gan.load_weights(args.weights+'/gan_weights.h5')
-	  print('Using Pretrained Networks...')
-	else:
-	  os.mkdir(args.weights)
+  if os.path.exists(args.weights):
+    generator.load_weights(args.weights+'/generator_weights.h5')
+    descriminator.load_weights(args.weights+'/descriminator_weights.h5')
+    gan.load_weights(args.weights+'/gan_weights.h5')
+    print('Using Pretrained Networks...')
+  else:
+    os.mkdir(args.weights)
 
-	real_labels = np.ones((BATCH_SIZE,1))
-	fake_labels = np.zeros((BATCH_SIZE,1))
-	real_image_gen = getRealMiniBatch(path=args.photos_dir, batch_size=BATCH_SIZE)
-	fake_image_gen = getFakeMiniBatch(batch_size=BATCH_SIZE, INP_DIM=INP_DIM )
+  real_labels = np.ones((BATCH_SIZE,1))
+  fake_labels = np.zeros((BATCH_SIZE,1))
+  real_image_gen = getRealMiniBatch(path=args.photos_dir, batch_size=BATCH_SIZE)
+  fake_image_gen = getFakeMiniBatch(batch_size=BATCH_SIZE, INP_DIM=INP_DIM )
 
-	for epoch in range(1,EPOCHS+1):
-	  fake_images,noise = next(fake_image_gen)
-	  real_images = next(real_image_gen)
-	  
-	  descri_loss_real = descriminator.train_on_batch( real_images, real_labels )
-	  descri_loss_fake = descriminator.train_on_batch( fake_images, fake_labels )
-	  descriminator_loss = 0.5*np.add(descri_loss_real,descri_loss_fake)
-	  
-	  gan_loss = gan.train_on_batch( noise, real_labels)
-	  
-	  history.append( (descriminator_loss, gan_loss) )
-	  if epoch % 250 ==0:
-	    print( "{} [ Descriminator loss : {:.2f} acc : {:.2f} ] [ Generator loss : {:.2f} ]".format( 
-	        epoch, descriminator_loss[0], 100*descriminator_loss[1], gan_loss ) )
-	    
-	  if epoch % 500 == 0:
-	    if not os.path.exists('generated_images'): os.mkdir('generated_images')
-	    descriminator.save_weights(args.weights+'/descriminator_weights.h5')
-	    generator.save_weights(args.weights+'/generator_weights.h5')
-	    gan.save_weights(args.weights+'/gan_weights.h5')
-	    save_figure(epoch,5,5,INP_DIM)
-	    print("Figure Saved | All Weights Saved")
+  for epoch in range(1,EPOCHS+1):
+    fake_images,noise = next(fake_image_gen)
+    real_images = next(real_image_gen)
+    
+    descri_loss_real = descriminator.train_on_batch( real_images, real_labels )
+    descri_loss_fake = descriminator.train_on_batch( fake_images, fake_labels )
+    descriminator_loss = 0.5*np.add(descri_loss_real,descri_loss_fake)
+    
+    gan_loss = gan.train_on_batch( noise, real_labels)
+    
+    history.append( (descriminator_loss, gan_loss) )
+    if epoch % 250 ==0:
+      print( "{} [ Descriminator loss : {:.2f} acc : {:.2f} ] [ Generator loss : {:.2f} ]".format( 
+          epoch, descriminator_loss[0], 100*descriminator_loss[1], gan_loss ) )
+      
+    if epoch % 500 == 0:
+      if not os.path.exists('generated_images'): os.mkdir('generated_images')
+      descriminator.save_weights(args.weights+'/descriminator_weights.h5')
+      generator.save_weights(args.weights+'/generator_weights.h5')
+      gan.save_weights(args.weights+'/gan_weights.h5')
+      save_figure(epoch,5,5,INP_DIM)
+      print("Figure Saved | All Weights Saved")
